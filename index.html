@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>jabvarv downloader</title>
+    <meta name="jabvarv downloader" />
+    <style>
+        /* 基本样式 */
+        .row {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            border-bottom: 1px solid #ccc;
+            margin-bottom: 10px;
+            background-color: #f1f1f1;
+        }
+
+        .row img {
+            width: 100px;
+            height: 67px;
+            margin-right: 15px;
+        }
+
+        .row .title {
+            flex-grow: 1;
+            font-size: 20px;
+            margin-right: 15px;
+            overflow: hidden;
+        }
+
+        .progress-container {
+            width: 160px;
+            background-color: #d1d1d1;
+            border-radius: 10px;
+            height: 20px;
+            margin-right: 25px;
+            overflow: hidden;
+        }
+
+        .progress {
+            height: 100%;
+            background-color: #4caf50;
+            width: 0;
+        }
+
+        .progress-text {
+            top: 0;
+            height: 16px;
+            width: 160px;
+            text-align: center;
+            line-height: 20px;
+            color: white;
+            font-size: 16px;
+        }
+
+        .progress-str {
+            margin-right: 15px;
+        }
+
+        .row button {
+            margin-right: 15px;
+            padding: 5px 10px;
+            cursor: pointer;
+        }
+
+        .row a {
+            color: blue;
+            text-decoration: none;
+            margin-right: 20px;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Jabvarv Downloader</h1>
+    <div>
+        <ul id="javlist">
+
+        </ul>
+    </div>
+    <script type="text/javascript">
+        function http_get(url, params, callback) {
+            if (params) {
+                const urlParams = new URLSearchParams(params).toString();
+                url = url + "?" + urlParams
+            }
+            const xhr = new XMLHttpRequest();
+            xhr.open('GET', url, true);
+            xhr.onreadystatechange = function () {
+                if (this.readyState == 4 && this.status == 200) {
+                    task_list = JSON.parse(xhr.responseText)
+                    callback(task_list)
+                }
+            }
+            xhr.send()
+
+        }
+
+        function task_list(callback) {
+            var url = "/api/task/list"
+            http_get(url, null, callback)
+        }
+        function create_task(url, callback) {
+            var url = "/api/task/add"
+            http_get(url, null, callback)
+        }
+        function file_list(callback) {
+            var url = "/api/file/list"
+            http_get(url, nill, callback)
+        }
+        function stop_task(url, taskurl, callback) {
+            var url = "/api/task/stop";
+            http_get(url, { "url": taskurl }, callback);
+        }
+        function createRow(task) {
+            // 获取容器
+            const container = document.getElementById('javlist');
+            // 创建行 div
+            const row = document.createElement('div');
+            row.className = 'row';
+
+            // 创建图片
+            const img = document.createElement('img');
+            img.src = task.cover;
+
+            // 创建标题
+            const title = document.createElement('div');
+            title.className = 'title';
+            title.textContent = task.title;
+            if (!task.title){
+                title.textContent = task.name
+            }
+
+            // 创建进度条容器
+            const progressContainer = document.createElement('div');
+            progressContainer.className = 'progress-container';
+            strprogress = String(task.progress * 100) 
+            // 创建进度条
+            const progress = document.createElement('div');
+            progress.className = 'progress';
+            progress.style.width = strprogress+ '%'; // 设置进度条的宽度
+
+             // 创建显示文字的元素
+            const progressText = document.createElement('div');
+            progressText.className = 'progress-text';
+            progressText.textContent = task.state; // 显示进度状态
+
+            progress.appendChild(progressText);
+
+            // 将进度条放入进度条容器
+            progressContainer.appendChild(progress);
+           
+            const protxt = document.createElement('div')
+            protxt.className = 'progress-str'
+            protxt.textContent = String(Math.floor(task.progress * 10000)/100) + '%'
+
+            // 创建 "stop" 按钮
+            const stopButton = document.createElement('button');
+            stopButton.textContent = 'Stop';
+            stopButton.onclick = () => alert('Stopped');
+
+            // 创建 "下载" 链接
+            const download = document.createElement('a');
+            download.href = task.file;
+            download.textContent = '下载';
+            download.target = '_blank'; // 在新标签页中打开链接
+
+            // 将所有元素添加到行中
+            row.appendChild(img);
+            row.appendChild(title);
+            row.appendChild(progressContainer);
+            row.appendChild(protxt)
+            row.appendChild(stopButton);
+            row.appendChild(download);
+
+            // 将行元素添加到容器中
+            container.appendChild(row);
+        }
+
+        var tlist = document.getElementById('javlist');
+        task_list(function (tasks) {
+            console.log(tasks)
+            tasks.forEach(element => {
+                createRow(element)
+            });
+        })
+    </script>
+</body>
+
+</html>
